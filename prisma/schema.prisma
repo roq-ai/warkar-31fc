@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model job_posting {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String   @db.VarChar(255)
+  user_id     String?  @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user        user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model platform {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  description String?  @db.VarChar(255)
+  image       String?  @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user_id     String   @db.Uuid
+  tenant_id   String   @db.VarChar(255)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model review {
+  id                            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  rating                        Int
+  comment                       String?  @db.VarChar(255)
+  reviewer_id                   String?  @db.Uuid
+  reviewee_id                   String?  @db.Uuid
+  created_at                    DateTime @default(now()) @db.Timestamp(6)
+  updated_at                    DateTime @default(now()) @db.Timestamp(6)
+  user_review_reviewee_idTouser user?    @relation("review_reviewee_idTouser", fields: [reviewee_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_review_reviewer_idTouser user?    @relation("review_reviewer_idTouser", fields: [reviewer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model skill_category {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name       String   @db.VarChar(255)
+  user_id    String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  user       user?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                           String           @unique @db.VarChar(255)
+  firstName                       String?          @db.VarChar(255)
+  lastName                        String?          @db.VarChar(255)
+  roq_user_id                     String           @db.VarChar(255)
+  tenant_id                       String           @db.VarChar(255)
+  created_at                      DateTime         @default(now()) @db.Timestamp(6)
+  updated_at                      DateTime         @default(now()) @db.Timestamp(6)
+  job_posting                     job_posting[]
+  platform                        platform[]
+  review_review_reviewee_idTouser review[]         @relation("review_reviewee_idTouser")
+  review_review_reviewer_idTouser review[]         @relation("review_reviewer_idTouser")
+  skill_category                  skill_category[]
+}
